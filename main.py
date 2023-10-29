@@ -38,7 +38,7 @@ def detectShapes(img):
 		if len(approx) > 10 and cv2.contourArea(cnt) > 1000:
 			cv2.drawContours(blank, [cnt], -1,
 							(0, 255, 0), thickness=cv2.FILLED)
-	cv2.imwrite("filled.png", blank)
+	# cv2.imwrite("filled.png", blank)
 
 	# plt.figure(figsize=(200,100))
 	# plt.subplot(131),plt.imshow(cv2.cvtColor(img_edge,cv2.COLOR_BGR2RGB)),plt.title('Input',color='c')
