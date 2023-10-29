@@ -4,17 +4,23 @@ import cv2
 from PIL import Image
 import tensorflow as tf
 
-model = tf.keras.models.load_model('simple_ai_model.h5')
+model = tf.keras.models.load_model('bougalyovski.h5')
 
 # model prediction function, takes in an image path
 def predict(image_path):
 
 	def preprocess_image(image_path):
-		img = Image.open(image_path)
-		img = img.resize((64, 64))
-		img = np.array(img)
-		img = np.expand_dims(img, axis=0)
-		return img / 255.0
+		# img = Image.open(image_path)
+		# img = img.resize((64, 64))
+		# img = np.array(img)
+		# img = np.expand_dims(img, axis=0)
+		# return img / 255.0
+		img = cv2.imread(image_path)
+		img = cv2.resize(img, (64, 64))  # Resize the images as necessary
+		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+		img = img/255.0
+		img = img.reshape([1,-1])
+		return img
 
 	processed_image = preprocess_image(image_path)
 	predictions = model.predict(processed_image)
@@ -89,9 +95,9 @@ def ellipsis(image, ogImage):
 			prediction = predict("tmp.png")
 
 			if (prediction == 0):
-				ogImage = cv2.drawKeypoints(ogImage, (keypoint,), blank, (0, 120, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+				ogImage = cv2.drawKeypoints(ogImage, (keypoint,), blank, (0, 234, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 			if (prediction == 1):
-				ogImage = cv2.drawKeypoints(ogImage, (keypoint,), blank, (255, 0, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+				ogImage = cv2.drawKeypoints(ogImage, (keypoint,), blank, (147,20,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 		
 		except Exception as e:
 			print(e)
