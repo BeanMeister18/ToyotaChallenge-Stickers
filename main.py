@@ -1,6 +1,27 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import random
+import os
+import numpy as np
+from PIL import Image
+import tensorflow as tf
+
+model = tf.keras.models.load_model('simple_ai_model.h5')
+
+def predict(image):
+
+	def preprocess_image(img):
+		img = Image.open(img)
+		img = img.resize((64, 64))
+		img = np.array(img)
+		img = np.expand_dims(img, axis=0)
+		return img / 255.0
+
+	processed_image = preprocess_image(image)
+	predictions = model.predict(processed_image)
+	predicted_class = np.argmax(predictions)
+	return predicted_class
 
 def detectShapes(img):
 	img = cv2.medianBlur(img, 3)
@@ -34,19 +55,20 @@ def elipsis(image, ogImage):
 
 	# Set Area filtering parameters
 	params.filterByArea = True
-	params.minArea = 1000
+	params.minArea = 100
+	params.maxArea = float('inf')
 
 	# Set Circularity filtering parameters
-	# params.filterByCircularity = True
+	params.filterByCircularity = False
 	# params.minCircularity = 0.7
 
-	# # Set Convexity filtering parameters
+	# Set Convexity filtering parameters
 	# params.filterByConvexity = True
-	# params.minConvexity = 0.2q
+	# params.minConvexity = 0.2
 
-	# # # Set inertia filtering parameters
-	# params.filterByInertia = True
-	# params.minInertiaRatio = 0.01
+	# Set inertia filtering parameters
+	params.filterByInertia = True
+	params.minInertiaRatio = 0.02
 
 	# Create a detector with the parameters
 	detector = cv2.SimpleBlobDetector_create(params)
@@ -56,12 +78,33 @@ def elipsis(image, ogImage):
 
 	# Draw blobs on our image as red circles
 	blank = np.zeros((1, 1))
-	bloobs = cv2.drawKeypoints(ogImage, keypoints, blank, (0, 0, 255),
-							cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+	print(keypoints)
+	for keypoint in keypoints:
+		x = round(keypoint.pt[0])
+		y = round(keypoint.pt[1])
+		r = 32
+		try:
+			cv2.imwrite("tmp.png", ogImage[y-r:y+r, x-r:x+r])
+			prediction = predict("tmp.png")
+			print(prediction)
+			if (prediction == 0):
+				ogImage = cv2.drawKeypoints(ogImage, (keypoint,), blank, (0, 120, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+			if (prediction == 1):
+				ogImage = cv2.drawKeypoints(ogImage, (keypoint,), blank, (255, 0, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+		except Exception as e:
+			print(e)
+
+		
+		# try:
+		# 	cv2.imwrite("training/holes/"+str(random.randint(0,10000000000))+".png", crop)
+		# except Exception as e:
+		# 	print(e)
+		
+	# putting on the og image, for visualization
 	# plt.imshow(cv2.cvtColor(bloobs,cv2.COLOR_BGR2RGB))
 	# plt.title('RGB Image',color='c')
 	# plt.show()
-	return bloobs
+	return ogImage
 
 
 cap = cv2.VideoCapture(0)
@@ -75,7 +118,7 @@ while True:
 	ret, frame = cap.read()
 
 	# IF WE WANT AN IMAGE INSTEAD OF VIDEO FEED
-	# frame = cv2.imread("Metal_2.jpg")
+	# frame = cv2.imread("pictures/Metal_2.jpg")
 
 	# if frame is read correctly ret is True
 	if not ret:
